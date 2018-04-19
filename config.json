@@ -1,0 +1,12 @@
+{
+    "templatedir": "./public/templates/",
+    "layoutname": "layout.html",
+    "barename": "bare.html",
+    "staticdir": "./public/static/",
+    "renderdir": "./render",
+    "checksumname": "sha512sums",
+    "backend": "ftp",
+    "hostname": "ftp.example.com:21",
+    "username": "admin",
+    "password": "pass"
+}
