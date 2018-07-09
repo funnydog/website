@@ -39,13 +39,15 @@ func main() {
 	}
 
 	if renderFlag {
-		err = template.Render(&conf)
-		if err != nil {
+		if err = os.RemoveAll(conf.RenderDir); err != nil {
 			panic(err)
 		}
 
-		err = template.CopyStatic(&conf)
-		if err != nil {
+		if err = template.Render(&conf); err != nil {
+			panic(err)
+		}
+
+		if err = template.CopyStatic(&conf); err != nil {
 			panic(err)
 		}
 	}
