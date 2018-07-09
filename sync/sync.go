@@ -154,44 +154,47 @@ func (u *Sync) Synchronize() error {
 		return err
 	}
 
+	i := 0
 	j := 0
-	for _, local := range localSums {
-		if j >= len(remoteSums) {
-			// save the local file or create the directory
-			if err := u.SaveLocal(&local); err != nil {
-				return err
-			}
-			continue
-		}
-
-		remote := remoteSums[j]
-		for local.Name > remote.Name {
-			// delete the remote file
-			if remote.Hash == "" {
-				// do not remove the directory
-			} else if err := u.DeleteRemote(&remote); err != nil {
-				return err
-			}
-			j++
-			remote = remoteSums[j]
-		}
+	for i < len(localSums) && j < len(remoteSums) {
+		local := &localSums[i]
+		remote := &remoteSums[j]
 
 		if local.Name < remote.Name {
-			// save the local file or create the directory
-			if err := u.SaveLocal(&local); err != nil {
+			if err := u.SaveLocal(local); err != nil {
 				return err
 			}
+			i++
+		} else if local.Name > remote.Name {
+			if err := u.DeleteRemote(remote); err != nil {
+				return err
+			}
+			j++
 		} else if local.Hash != remote.Hash {
-			// save the local file or create the directory
-			if err := u.SaveLocal(&local); err != nil {
+			if err := u.SaveLocal(local); err != nil {
 				return err
 			}
+			i++
 			j++
 		} else {
-			// same contents
 			log.Println("=", local.Name)
+			i++
 			j++
 		}
+	}
+
+	for i < len(localSums) {
+		if err := u.SaveLocal(&localSums[i]); err != nil {
+			return err
+		}
+		i++
+	}
+
+	for j < len(remoteSums) {
+		if err := u.DeleteRemote(&remoteSums[j]); err != nil {
+			return err
+		}
+		j++
 	}
 
 	err = u.StoreChecksums(localSums)
