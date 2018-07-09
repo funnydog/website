@@ -24,11 +24,12 @@ func (e *Element) isDir() bool {
 	return e.Hash == ""
 }
 
-func NewSync(b backend.Backend, chksumName, sourceDir string) (*Sync, error) {
+func Create(b backend.Backend, chksumName, sourceDir, destDir string) (*Sync, error) {
 	return &Sync{
 		backend:    b,
 		chksumName: chksumName,
 		sourceDir:  sourceDir,
+		destDir:    destDir,
 	}, nil
 }
 
@@ -36,12 +37,13 @@ type Sync struct {
 	backend    backend.Backend
 	chksumName string
 	sourceDir  string
+	destDir    string
 }
 
 func (u *Sync) GetRemoteChecksums() ([]Element, error) {
 	elements := []Element{}
 
-	res, err := u.backend.Fetch(u.chksumName)
+	res, err := u.backend.Fetch(path.Join(u.destDir, u.chksumName))
 	if err != nil {
 		return elements, nil
 	}
@@ -114,7 +116,7 @@ func (u *Sync) StoreChecksums(elements []Element) error {
 		fmt.Fprintf(&b, "%s %s\n", element.Hash, element.Name)
 	}
 
-	err := u.backend.Store(u.chksumName, &b)
+	err := u.backend.Store(path.Join(u.destDir, u.chksumName), &b)
 	if err != nil {
 		return err
 	}
@@ -123,24 +125,28 @@ func (u *Sync) StoreChecksums(elements []Element) error {
 }
 
 func (u *Sync) SaveLocal(element *Element) error {
+	log.Println("+", element.Name)
 	if element.isDir() {
-		log.Println("d", element.Name)
-		_ = u.backend.MakeDir(element.Name)
+		_ = u.backend.MakeDir(path.Join(u.destDir, element.Name))
 		return nil
 	} else {
-		log.Println("+", element.Name)
 		file, err := os.Open(path.Join(u.sourceDir, element.Name))
 		if err != nil {
 			return err
 		}
 		defer file.Close()
-		return u.backend.Store(element.Name, file)
+		return u.backend.Store(path.Join(u.destDir, element.Name), file)
 	}
 }
 
 func (u *Sync) DeleteRemote(remote *Element) error {
 	log.Println("-", remote.Name)
-	return u.backend.Delete(remote.Name)
+	if remote.isDir() {
+		_ = u.backend.RemoveDir(path.Join(u.destDir, remote.Name))
+	} else {
+		_ = u.backend.Delete(path.Join(u.destDir, remote.Name))
+	}
+	return nil
 }
 
 func (u *Sync) Synchronize() error {

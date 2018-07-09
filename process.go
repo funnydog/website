@@ -59,10 +59,11 @@ func main() {
 		}
 		defer backend.Close()
 
-		b, err := sync.NewSync(
+		b, err := sync.Create(
 			backend,
 			conf.ChecksumName,
 			conf.RenderDir,
+			conf.DestDir,
 		)
 		if err != nil {
 			panic(err)

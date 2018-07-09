@@ -11,6 +11,7 @@ type Configuration struct {
 	BareName     string `json:"barename"`
 	StaticDir    string `json:"staticdir"`
 	RenderDir    string `json:"renderdir"`
+	DestDir      string `json:"destdir"`
 	ChecksumName string `json:"checksumname"`
 	BackendType  string `json:"backend"`
 	Hostname     string `json:"hostname"`
