@@ -26,6 +26,8 @@ func Create(c *config.Configuration) (Backend, error) {
 	switch c.BackendType {
 	case "ftp":
 		return newFTPBackend(c)
+	case "sftp":
+		return newSFTPBackend(c)
 	default:
 		return nil, ErrUnknownBackend(c.BackendType)
 	}
